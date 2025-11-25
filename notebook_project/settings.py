@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-en7!r%og=h%w^qm5!4)kn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ['note-book.up.railway.app', 'localhost']
 
 # Railway specific
 RAILWAY_STATIC_URL = config('RAILWAY_STATIC_URL', default='')
