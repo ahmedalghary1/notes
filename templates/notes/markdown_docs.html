@@ -1,0 +1,795 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}دليل Markdown - Notebook{% endblock %}
+
+{% block extra_css %}
+<style>
+    .docs-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .docs-sidebar {
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-md);
+    }
+
+    body.dark-mode .docs-sidebar {
+        background: var(--bg-dark);
+        border: 1px solid var(--border-dark);
+    }
+
+    .docs-nav-item {
+        display: block;
+        padding: 0.75rem 1rem;
+        color: #4a5568;
+        text-decoration: none;
+        border-radius: var(--radius-md);
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+    }
+
+    .docs-nav-item:hover,
+    .docs-nav-item.active {
+        background: var(--gradient-primary);
+        color: white;
+        transform: translateX(5px);
+    }
+
+    body.dark-mode .docs-nav-item {
+        color: var(--text-dark);
+    }
+
+    .docs-content {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 3rem;
+        box-shadow: var(--shadow-md);
+        min-height: 600px;
+    }
+
+    body.dark-mode .docs-content {
+        background: var(--bg-dark);
+        border: 1px solid var(--border-dark);
+    }
+
+    .docs-section {
+        margin-bottom: 4rem;
+        scroll-margin-top: 100px;
+    }
+
+    .docs-section h2 {
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem;
+        font-weight: 800;
+    }
+
+    .example-box {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        border: 2px solid #e2e8f0;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    body.dark-mode .example-box {
+        border-color: var(--border-dark);
+    }
+
+    .example-code,
+    .example-preview {
+        padding: 1.5rem;
+    }
+
+    .example-code {
+        background: #f7fafc;
+        border-left: 3px solid var(--primary);
+    }
+
+    body.dark-mode .example-code {
+        background: var(--bg-darker);
+    }
+
+    .example-code pre {
+        margin: 0;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+
+    .example-preview {
+        background: white;
+    }
+
+    body.dark-mode .example-preview {
+        background: var(--bg-dark);
+    }
+
+    .example-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .search-box {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 2rem;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .search-box i {
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        font-size: 1.2rem;
+    }
+
+    .search-results {
+        margin-top: 1rem;
+    }
+
+    .search-highlight {
+        background: yellow;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+    }
+
+    body.dark-mode .search-highlight {
+        background: #fbbf24;
+        color: #1a202c;
+    }
+
+    .tip-box {
+        background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+        border-right: 4px solid var(--info);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        margin: 1.5rem 0;
+    }
+
+    body.dark-mode .tip-box {
+        background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%);
+        border-right-color: var(--info);
+    }
+
+    .tip-box i {
+        color: var(--info);
+        font-size: 1.5rem;
+        margin-left: 0.75rem;
+    }
+
+    @media (max-width: 992px) {
+        .example-box {
+            grid-template-columns: 1fr;
+        }
+
+        .docs-sidebar {
+            position: relative;
+            max-height: none;
+            margin-bottom: 2rem;
+        }
+    }
+
+    .copy-button {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        padding: 0.375rem 0.75rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        opacity: 0;
+    }
+
+    .example-code:hover .copy-button {
+        opacity: 1;
+    }
+
+    .copy-button:hover {
+        background: var(--secondary);
+        transform: scale(1.05);
+    }
+
+    .keyboard-shortcut {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.25rem;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        margin: 0 0.25rem;
+    }
+
+    body.dark-mode .keyboard-shortcut {
+        background: var(--bg-darker);
+        border-color: var(--border-dark);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid docs-container mt-4 mb-5">
+    <!-- Hero Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-gradient-primary mb-3">
+            <i class="bi bi-book"></i> دليل Markdown الشامل
+        </h1>
+        <p class="lead text-muted">
+            تعلم كيفية تنسيق ملاحظاتك باستخدام Markdown - دليل كامل مع أمثلة تفاعلية
+        </p>
+    </div>
+
+    <!-- Search Box -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="search-box">
+                <input type="text" id="docsSearch" placeholder="ابحث في الدليل... (اضغط Ctrl+K)" dir="auto">
+                <i class="bi bi-search"></i>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="docs-sidebar">
+                <h5 class="mb-3"><i class="bi bi-list-ul"></i> المحتويات</h5>
+                <a href="#intro" class="docs-nav-item active"><i class="bi bi-info-circle"></i> مقدمة</a>
+                <a href="#headers" class="docs-nav-item"><i class="bi bi-type-h1"></i> العناوين</a>
+                <a href="#formatting" class="docs-nav-item"><i class="bi bi-type-bold"></i> التنسيق</a>
+                <a href="#lists" class="docs-nav-item"><i class="bi bi-list-task"></i> القوائم</a>
+                <a href="#links" class="docs-nav-item"><i class="bi bi-link-45deg"></i> الروابط والصور</a>
+                <a href="#tables" class="docs-nav-item"><i class="bi bi-table"></i> الجداول</a>
+                <a href="#code" class="docs-nav-item"><i class="bi bi-code-square"></i> الأكواد</a>
+                <a href="#quotes" class="docs-nav-item"><i class="bi bi-quote"></i> الاقتباسات</a>
+                <a href="#extras" class="docs-nav-item"><i class="bi bi-star"></i> مميزات إضافية</a>
+                <a href="#shortcuts" class="docs-nav-item"><i class="bi bi-keyboard"></i> اختصارات لوحة المفاتيح</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="docs-content">
+
+                <!-- Introduction -->
+                <section id="intro" class="docs-section">
+                    <h2><i class="bi bi-info-circle"></i> ما هو Markdown؟</h2>
+                    <p>
+                        Markdown هي لغة تنسيق نصية خفيفة تتيح لك كتابة نصوص منسقة بسهولة باستخدام رموز بسيطة.
+                        يتم تحويل النص إلى HTML جميل وجاهز للعرض.
+                    </p>
+                    <div class="tip-box">
+                        <i class="bi bi-lightbulb-fill"></i>
+                        <strong>نصيحة:</strong> Markdown يدعم النص المختلط (عربي + English) بشكل كامل في نفس السطر!
+                    </div>
+                </section>
+
+                <!-- Headers -->
+                <section id="headers" class="docs-section">
+                    <h2><i class="bi bi-type-h1"></i> العناوين (Headers)</h2>
+                    <p>استخدم علامة <code>#</code> لإنشاء العناوين. عدد العلامات يحدد مستوى العنوان (H1-H6).</p>
+
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code># عنوان رئيسي (H1)
+## عنوان فرعي (H2)
+### عنوان من المستوى الثالث (H3)
+#### عنوان من المستوى الرابع (H4)</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <h1 style="font-size: 2rem; margin: 0.5rem 0;">عنوان رئيسي (H1)</h1>
+                            <h2 style="font-size: 1.75rem; margin: 0.5rem 0;">عنوان فرعي (H2)</h2>
+                            <h3 style="font-size: 1.5rem; margin: 0.5rem 0;">عنوان من المستوى الثالث (H3)</h3>
+                            <h4 style="font-size: 1.25rem; margin: 0.5rem 0;">عنوان من المستوى الرابع (H4)</h4>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Formatting -->
+                <section id="formatting" class="docs-section">
+                    <h2><i class="bi bi-type-bold"></i> التنسيق (Formatting)</h2>
+
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>**نص عريض Bold**
+*نص مائل Italic*
+***نص عريض ومائل***
+~~نص مشطوب~~
+`كود inline code`</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <p><strong>نص عريض Bold</strong></p>
+                            <p><em>نص مائل Italic</em></p>
+                            <p><strong><em>نص عريض ومائل</em></strong></p>
+                            <p><del>نص مشطوب</del></p>
+                            <p><code>كود inline code</code></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Lists -->
+                <section id="lists" class="docs-section">
+                    <h2><i class="bi bi-list-task"></i> القوائم (Lists)</h2>
+
+                    <h4>قوائم غير مرقمة</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>- عنصر أول
+- عنصر ثاني
+  - عنصر فرعي
+  - عنصر فرعي آخر
+- عنصر ثالث</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <ul>
+                                <li>عنصر أول</li>
+                                <li>عنصر ثاني
+                                    <ul>
+                                        <li>عنصر فرعي</li>
+                                        <li>عنصر فرعي آخر</li>
+                                    </ul>
+                                </li>
+                                <li>عنصر ثالث</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4">قوائم مرقمة</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>1. الخطوة الأولى
+2. الخطوة الثانية
+3. الخطوة الثالثة</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <ol>
+                                <li>الخطوة الأولى</li>
+                                <li>الخطوة الثانية</li>
+                                <li>الخطوة الثالثة</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4">قوائم المهام (Todo Lists)</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>- [x] مهمة مكتملة
+- [ ] مهمة غير مكتملة
+- [ ] مهمة أخرى</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <ul style="list-style: none;">
+                                <li><input type="checkbox" checked disabled> مهمة مكتملة</li>
+                                <li><input type="checkbox" disabled> مهمة غير مكتملة</li>
+                                <li><input type="checkbox" disabled> مهمة أخرى</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Links & Images -->
+                <section id="links" class="docs-section">
+                    <h2><i class="bi bi-link-45deg"></i> الروابط والصور</h2>
+
+                    <h4>الروابط</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>[نص الرابط](https://example.com)
+[Google](https://google.com)</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <p><a href="https://example.com">نص الرابط</a></p>
+                            <p><a href="https://google.com">Google</a></p>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4">الصور</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>![وصف الصورة](image.jpg)
+![صورة مع رابط](https://via.placeholder.com/150)</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <p dir="ltr"><img src="https://via.placeholder.com/150" alt="صورة مع رابط"
+                                    style="max-width: 150px; border-radius: 8px;"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tables -->
+                <section id="tables" class="docs-section">
+                    <h2><i class="bi bi-table"></i> الجداول (Tables)</h2>
+
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>| العنوان | الوصف | السعر |
+|---------|-------|------|
+| منتج 1  | وصف رائع | 100 ريال |
+| منتج 2  | وصف آخر | 200 ريال |</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>العنوان</th>
+                                        <th>الوصف</th>
+                                        <th>السعر</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>منتج 1</td>
+                                        <td>وصف رائع</td>
+                                        <td>100 ريال</td>
+                                    </tr>
+                                    <tr>
+                                        <td>منتج 2</td>
+                                        <td>وصف آخر</td>
+                                        <td>200 ريال</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Code -->
+                <section id="code" class="docs-section">
+                    <h2><i class="bi bi-code-square"></i> الأكواد (Code)</h2>
+
+                    <h4>كود في السطر (Inline Code)</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>استخدم دالة `print()` لطباعة النص</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <p>استخدم دالة <code>print()</code> لطباعة النص</p>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4">كتلة كود (Code Block)</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>```python
+def hello():
+    print("مرحباً بالعالم!")
+    return "Hello World"
+```</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <pre style="background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 8px;"><code class="language-python">def hello():
+    print("مرحباً بالعالم!")
+    return "Hello World"</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quotes -->
+                <section id="quotes" class="docs-section">
+                    <h2><i class="bi bi-quote"></i> الاقتباسات (Blockquotes)</h2>
+
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>> هذا اقتباس مهم
+> يمكن أن يمتد لأكثر من سطر
+>
+> > اقتباس متداخل</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <blockquote
+                                style="border-right: 4px solid var(--primary); padding-right: 1rem; color: #4a5568;">
+                                <p>هذا اقتباس مهم<br>يمكن أن يمتد لأكثر من سطر</p>
+                                <blockquote style="border-right: 4px solid var(--secondary); padding-right: 1rem;">
+                                    اقتباس متداخل
+                                </blockquote>
+                            </blockquote>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Extras -->
+                <section id="extras" class="docs-section">
+                    <h2><i class="bi bi-star"></i> مميزات إضافية</h2>
+
+                    <h4>الخطوط الأفقية</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>---</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <hr>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4">Emoji 😊</h4>
+                    <div class="example-box">
+                        <div class="example-code" style="position: relative;">
+                            <button class="copy-button" onclick="copyCode(this)"><i class="bi bi-clipboard"></i>
+                                نسخ</button>
+                            <div class="example-label">Markdown</div>
+                            <pre><code>يمكنك استخدام 😊 🎉 ✨ مباشرة!</code></pre>
+                        </div>
+                        <div class="example-preview">
+                            <div class="example-label">النتيجة</div>
+                            <p>يمكنك استخدام 😊 🎉 ✨ مباشرة!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Keyboard Shortcuts -->
+                <section id="shortcuts" class="docs-section">
+                    <h2><i class="bi bi-keyboard"></i> اختصارات لوحة المفاتيح</h2>
+                    <p>استخدم هذه الاختصارات في المحرر لتسريع عملك:</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>الاختصار</th>
+                                    <th>الوظيفة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="keyboard-shortcut">Ctrl</span> + <span
+                                            class="keyboard-shortcut">B</span></td>
+                                    <td>نص عريض (Bold)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="keyboard-shortcut">Ctrl</span> + <span
+                                            class="keyboard-shortcut">I</span></td>
+                                    <td>نص مائل (Italic)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="keyboard-shortcut">Ctrl</span> + <span
+                                            class="keyboard-shortcut">K</span></td>
+                                    <td>إدراج رابط</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="keyboard-shortcut">Ctrl</span> + <span
+                                            class="keyboard-shortcut">Shift</span> + <span
+                                            class="keyboard-shortcut">C</span></td>
+                                    <td>كتلة كود</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="keyboard-shortcut">Ctrl</span> + <span
+                                            class="keyboard-shortcut">H</span></td>
+                                    <td>عنوان</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="keyboard-shortcut">Ctrl</span> + <span
+                                            class="keyboard-shortcut">L</span></td>
+                                    <td>قائمة</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="text-center mt-5 p-4"
+                    style="background: var(--gradient-primary); border-radius: var(--radius-lg); color: white;">
+                    <h3><i class="bi bi-rocket-takeoff"></i> جاهز للبدء؟</h3>
+                    <p class="mb-3">ابدأ بإنشاء ملاحظتك الأولى الآن!</p>
+                    <a href="{% url 'note_create' %}" class="btn btn-light btn-lg">
+                        <i class="bi bi-plus-circle"></i> إنشاء ملاحظة جديدة
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Search functionality with Fuse.js-like behavior
+    const docsContent = [
+        { id: 'intro', title: 'مقدمة', keywords: ['markdown', 'مقدمة', 'introduction', 'ما هو'], content: 'Markdown هي لغة تنسيق نصية' },
+        { id: 'headers', title: 'العناوين', keywords: ['عناوين', 'headers', 'h1', 'h2', 'عنوان'], content: 'استخدم علامة # لإنشاء العناوين' },
+        { id: 'formatting', title: 'التنسيق', keywords: ['تنسيق', 'formatting', 'bold', 'italic', 'عريض', 'مائل'], content: 'نص عريض ومائل ومشطوب' },
+        { id: 'lists', title: 'القوائم', keywords: ['قوائم', 'lists', 'مرقمة', 'numbered'], content: 'قوائم مرقمة وغير مرقمة وقوائم مهام' },
+        { id: 'links', title: 'الروابط والصور', keywords: ['روابط', 'صور', 'links', 'images'], content: 'إدراج روابط وصور' },
+        { id: 'tables', title: 'الجداول', keywords: ['جداول', 'tables', 'جدول'], content: 'إنشاء جداول منسقة' },
+        { id: 'code', title: 'الأكواد', keywords: ['كود', 'code', 'برمجة', 'أكواد'], content: 'كود في السطر وكتل أكواد' },
+        { id: 'quotes', title: 'الاقتباسات', keywords: ['اقتباس', 'blockquote', 'quote'], content: 'اقتباسات ومتداخلة' },
+        { id: 'extras', title: 'مميزات إضافية', keywords: ['إضافية', 'extras', 'emoji', 'خطوط'], content: 'خطوط أفقية و emoji' },
+        { id: 'shortcuts', title: 'اختصارات', keywords: ['اختصارات', 'shortcuts', 'keyboard', 'لوحة المفاتيح'], content: 'اختصارات لوحة المفاتيح' }
+    ];
+
+    const searchInput = document.getElementById('docsSearch');
+    const searchResults = document.getElementById('searchResults');
+
+    // Ctrl+K to focus search
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim().toLowerCase();
+
+        if (query.length < 2) {
+            searchResults.innerHTML = '';
+            return;
+        }
+
+        const results = docsContent.filter(item => {
+            return item.title.toLowerCase().includes(query) ||
+                item.keywords.some(k => k.includes(query)) ||
+                item.content.toLowerCase().includes(query);
+        });
+
+        if (results.length === 0) {
+            searchResults.innerHTML = '<div class="alert alert-info">لا توجد نتائج</div>';
+            return;
+        }
+
+        searchResults.innerHTML = `
+        <div class="alert alert-success">
+            <strong>${results.length} نتيجة:</strong>
+            <ul class="mb-0 mt-2">
+                ${results.map(r => `
+                    <li><a href="#${r.id}" onclick="highlightSection('${r.id}')">${r.title}</a></li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+    });
+
+    function highlightSection(id) {
+        // Scroll to section
+        const section = document.getElementById(id);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Highlight briefly
+            section.style.background = 'rgba(102, 126, 234, 0.1)';
+            section.style.transition = 'background 0.3s ease';
+
+            setTimeout(() => {
+                section.style.background = '';
+            }, 2000);
+        }
+
+        // Clear search
+        searchInput.value = '';
+        searchResults.innerHTML = '';
+    }
+
+    // Sidebar navigation active state
+    const navItems = document.querySelectorAll('.docs-nav-item');
+    const sections = document.querySelectorAll('.docs-section');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            if (pageYOffset >= (sectionTop - 150)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href') === `#${current}`) {
+                item.classList.add('active');
+            }
+        });
+    });
+
+    // Copy code functionality
+    function copyCode(button) {
+        const codeBlock = button.nextElementSibling.nextElementSibling.querySelector('code');
+        const text = codeBlock.textContent;
+
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check"></i> تم النسخ!';
+            button.style.background = 'var(--success)';
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = 'var(--primary)';
+            }, 2000);
+        });
+    }
+
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('pre code').forEach((block) => {
+            if (block.classList.contains('language-python')) {
+                hljs.highlightElement(block);
+            }
+        });
+    });
+</script>
+{% endblock %}

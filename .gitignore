@@ -1,0 +1,24 @@
+# Ignore Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+
+# Ignore virtual environment
+venv/
+.env
+
+# Ignore Railway and deployment files
+.railway/
+staticfiles/
+
+# Ignore static and media files
+static/
+media/
+
+# Ignore database
+db.sqlite3
+
+

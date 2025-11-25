@@ -1,0 +1,145 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_new %}ملاحظة جديدة{% else %}تعديل: {{ note.title }}{% endif %} - Notebook{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h2>
+                {% if is_new %}
+                <i class="bi bi-plus-circle"></i> ملاحظة جديدة
+                {% else %}
+                <i class="bi bi-pencil"></i> تعديل الملاحظة
+                {% endif %}
+            </h2>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        {% if not is_new %}
+        <input type="hidden" id="note-id" value="{{ note.id }}">
+        {% endif %}
+
+        <!-- Title -->
+        <div class="mb-3">
+            {{ form.title }}
+        </div>
+
+        <!-- Editor Container -->
+        <div class="editor-container">
+            <!-- Markdown Editor -->
+            <div class="editor-pane">
+                <label for="markdown-editor" class="form-label">
+                    <i class="bi bi-markdown"></i> محرر Markdown
+                </label>
+                {{ form.content_md }}
+
+                <!-- Character Count -->
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-muted">
+                        <span id="char-count">0</span> حرف | <span id="word-count">0</span> كلمة
+                    </small>
+                    {% if not is_new %}
+                    <small id="autosave-indicator" class="autosave-indicator"></small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="preview-pane">
+                <label class="form-label">
+                    <i class="bi bi-eye"></i> معاينة حية
+                </label>
+                <div id="preview" class="markdown-preview" dir="auto">
+                    <!-- Live preview will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="mb-3 mt-3">
+            <label for="tags-input" class="form-label">
+                <i class="bi bi-tags"></i> الوسوم (افصل بفاصلة)
+            </label>
+            {{ form.tags_field }}
+        </div>
+
+        <!-- Options -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-check">
+                    {{ form.is_public }}
+                    <label class="form-check-label" for="is-public">
+                        {{ form.is_public.label }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-check">
+                    {{ form.is_favorite }}
+                    <label class="form-check-label" for="is-favorite">
+                        {{ form.is_favorite.label }}
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> حفظ
+            </button>
+            <a href="{% if is_new %}{% url 'notes_list' %}{% else %}{% url 'note_detail' note.id %}{% endif %}"
+                class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> إلغاء
+            </a>
+        </div>
+    </form>
+
+    <!-- Markdown Help -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="bi bi-question-circle"></i> مساعدة Markdown
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>العناوين</h6>
+                    <code># عنوان 1</code><br>
+                    <code>## عنوان 2</code><br>
+                    <code>### عنوان 3</code>
+                </div>
+                <div class="col-md-6">
+                    <h6>التنسيق</h6>
+                    <code>**نص عريض**</code><br>
+                    <code>*نص مائل*</code><br>
+                    <code>`كود`</code>
+                </div>
+            </div>
+            <hr>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <h6>القوائم</h6>
+                    <code>- عنصر 1</code><br>
+                    <code>- عنصر 2</code><br>
+                    <code>1. عنصر مرقم</code>
+                </div>
+                <div class="col-md-6">
+                    <h6>روابط وصور</h6>
+                    <code>[نص الرابط](url)</code><br>
+                    <code>![نص بديل](image.jpg)</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/editor.js' %}"></script>
+<script src="{% static 'js/markdown-autocontinue.js' %}"></script>
+{% endblock %}

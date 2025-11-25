@@ -1,0 +1,36 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}تأكيد الحذف - Notebook{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+
+                    <h3 class="mt-3">تأكيد حذف الملاحظة</h3>
+
+                    <p class="text-muted mt-3">
+                        هل أنت متأكد من حذف الملاحظة <strong>"{{ note.title }}"</strong>؟
+                        <br>
+                        لا يمكن التراجع عن هذا الإجراء.
+                    </p>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> نعم، احذف الملاحظة
+                        </button>
+                        <a href="{% url 'note_detail' note.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> إلغاء
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

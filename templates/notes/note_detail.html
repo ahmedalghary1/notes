@@ -1,0 +1,134 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}{{ note.title }} - Notebook{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2 dir="auto">{{ note.title }}</h2>
+
+            <!-- Meta Info -->
+            <div class="text-muted small">
+                <i class="bi bi-person-circle"></i> {{ note.owner.username }}
+                <span class="mx-2">|</span>
+                <i class="bi bi-clock"></i> أُنشئت في {{ note.created_at|date:"Y/m/d H:i" }}
+                <span class="mx-2">|</span>
+                <i class="bi bi-pencil"></i> آخر تحديث {{ note.updated_at|date:"Y/m/d H:i" }}
+                <span class="mx-2">|</span>
+                <i class="bi bi-eye"></i> {{ note.views }} مشاهدة
+            </div>
+        </div>
+
+        <div class="col-md-4 text-start">
+            <a href="{% url 'note_edit' note.id %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-pencil"></i> تعديل
+            </a>
+            <a href="{% url 'note_delete' note.id %}" class="btn btn-danger btn-sm">
+                <i class="bi bi-trash"></i> حذف
+            </a>
+            <button class="btn btn-outline-warning btn-sm btn-favorite {% if note.is_favorite %}active{% endif %}"
+                onclick="toggleFavorite({{ note.id }})">
+                <i class="bi bi-star-fill"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Tags -->
+    {% if note.tags.all %}
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <i class="bi bi-tags"></i>
+            {% for tag in note.tags.all %}
+            <a href="{% url 'notes_list' %}?tag={{ tag }}" class="badge bg-primary tag-badge">
+                {{ tag }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Public Share -->
+    {% if note.is_public %}
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="alert alert-success">
+                <i class="bi bi-globe"></i> هذه الملاحظة عامة.
+                <strong>رابط المشاركة:</strong>
+                <code
+                    id="public-link">{{ request.scheme }}://{{ request.get_host }}{% url 'public_note' note.public_uuid %}</code>
+                <button class="btn btn-sm btn-outline-success"
+                    onclick="copyPublicLink('{{ request.scheme }}://{{ request.get_host }}{% url 'public_note' note.public_uuid %}')">
+                    <i class="bi bi-clipboard"></i> نسخ
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Note Content -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="markdown-preview" dir="auto">
+                        {{ note.content_html|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="row mt-3 mb-4">
+        <div class="col-md-12">
+            <h5><i class="bi bi-download"></i> تصدير</h5>
+            <a href="{% url 'export_markdown' note.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-text"></i> تنزيل Markdown
+            </a>
+            <a href="{% url 'export_pdf' note.id %}" class="btn btn-outline-danger">
+                <i class="bi bi-file-earmark-pdf"></i> تنزيل PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Version History -->
+    {% if versions %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history"></i> النسخ السابقة (آخر 5)
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for version in versions %}
+                        <li class="list-group-item">
+                            <strong>{{ version.created_at|date:"Y/m/d H:i" }}</strong>
+                            <p class="mb-0 text-muted small">{{ version.content_md|truncatechars:100 }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/editor.js' %}"></script>
+<script>
+    // Highlight code blocks
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'notes/base.html' %}
+{% load static %}
+
+{% block title %}الملف الشخصي - Notebook{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">
+                <i class="bi bi-person-circle"></i> الملف الشخصي
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <h3>{{ stats.total_notes }}</h3>
+                <p><i class="bi bi-journal-text"></i> إجمالي الملاحظات</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3>{{ stats.favorite_notes }}</h3>
+                <p><i class="bi bi-star-fill"></i> الملاحظات المفضلة</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3>{{ stats.public_notes }}</h3>
+                <p><i class="bi bi-globe"></i> الملاحظات العامة</p>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <h3>{{ stats.total_views }}</h3>
+                <p><i class="bi bi-eye-fill"></i> إجمالي المشاهدات</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-person"></i> معلومات الحساب
+                    </h5>
+                    <hr>
+                    <p><strong>اسم المستخدم:</strong> {{ user.username }}</p>
+                    <p><strong>البريد الإلكتروني:</strong> {{ user.email }}</p>
+                    <p><strong>تاريخ الانضمام:</strong> {{ user.date_joined|date:"Y/m/d" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-gear"></i> روابط سريعة
+                    </h5>
+                    <hr>
+                    <a href="{% url 'notes_list' %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="bi bi-list-ul"></i> عرض جميع الملاحظات
+                    </a>
+                    <a href="{% url 'note_create' %}" class="btn btn-outline-success w-100 mb-2">
+                        <i class="bi bi-plus-circle"></i> إنشاء ملاحظة جديدة
+                    </a>
+                    <a href="{% url 'notes_list' %}?favorites=1" class="btn btn-outline-warning w-100">
+                        <i class="bi bi-star-fill"></i> الملاحظات المفضلة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
